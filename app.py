@@ -10,7 +10,8 @@ app = Flask(__name__)
 # --- LOAD ML ASSETS ---
 try:
     import os
-    asset_path = 'model_assets'
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    asset_path = os.path.join(BASE_DIR, 'model_assets')
     
     models = {
         'rf': joblib.load(os.path.join(asset_path, 'tuned_rf_model.pkl')),
