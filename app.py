@@ -9,39 +9,31 @@ app = Flask(__name__)
 import os
 print("Files in model_assets:", os.listdir('model_assets'))
 
+# --- LOAD ML ASSETS (Simplified for Root) ---
 import os
 import joblib
 
-# Force the path to be absolute based on where app.py sits
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-asset_path = os.path.join(BASE_DIR, 'model_assets')
-
-# Initialize variables as None so the app doesn't crash on "not defined"
+# Initialize
 models = {}
 scaler = None
 features = None
 encoders = None
 
 try:
-    print(f"Current working directory: {os.getcwd()}")
-    print(f"Looking for assets in: {asset_path}")
+    # No more 'model_assets' folder - just look in the same directory as app.py
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     
-    if not os.path.exists(asset_path):
-        print(f"❌ ERROR: The directory {asset_path} does not exist!")
-    else:
-        print(f"Contents of {asset_path}: {os.listdir(asset_path)}")
-
-    # Load the files using the absolute path
-    models['rf'] = joblib.load(os.path.join(asset_path, 'tuned_rf_model.pkl'))
-    models['xgb'] = joblib.load(os.path.join(asset_path, 'xgboost_model.pkl'))
-    scaler = joblib.load(os.path.join(asset_path, 'scaler.pkl'))
-    features = joblib.load(os.path.join(asset_path, 'feature_list.pkl'))
-    encoders = joblib.load(os.path.join(asset_path, 'label_encoders_dict.pkl'))
+    print(f"Loading assets from root: {BASE_DIR}")
     
-    print("✅ SUCCESS: All ML assets loaded!")
-
+    models['rf'] = joblib.load(os.path.join(BASE_DIR, 'tuned_rf_model.pkl'))
+    models['xgb'] = joblib.load(os.path.join(BASE_DIR, 'xgboost_model.pkl'))
+    scaler = joblib.load(os.path.join(BASE_DIR, 'scaler.pkl'))
+    features = joblib.load(os.path.join(BASE_DIR, 'feature_list.pkl'))
+    encoders = joblib.load(os.path.join(BASE_DIR, 'label_encoders_dict.pkl'))
+    
+    print("✅ SUCCESS: All assets loaded from Root!")
 except Exception as e:
-    print(f"CRITICAL ASSET ERROR: {e}", flush=True)
+    print(f"ASSET LOADING FAILED: {e}")
     
 
 # Global history storage
