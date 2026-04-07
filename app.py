@@ -6,6 +6,8 @@ from datetime import datetime
 import random
 
 app = Flask(__name__)
+import os
+print("Files in model_assets:", os.listdir('model_assets'))
 
 # --- LOAD ML ASSETS ---
 try:
