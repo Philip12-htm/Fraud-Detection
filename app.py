@@ -3,38 +3,36 @@ import joblib
 import pandas as pd
 import numpy as np
 from datetime import datetime
-import random
+import os
 
 app = Flask(__name__)
-import os
-print("Files in model_assets:", os.listdir('model_assets'))
 
-# --- LOAD ML ASSETS (Simplified for Root) ---
-import os
-import joblib
-
-# Initialize
+# --- FIX 1: INITIALIZE WITH EMPTY DATA INSTEAD OF NONE ---
+# This prevents the "NoneType" error even if loading fails.
 models = {}
 scaler = None
-features = None
-encoders = None
+features = []  # Empty list is iterable; None is not.
+encoders = {}  # Empty dict is iterable; None is not.
 
+# --- LOAD ML ASSETS ---
 try:
-    # No more 'model_assets' folder - just look in the same directory as app.py
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     
-    print(f"Loading assets from root: {BASE_DIR}")
-    
+    # DEBUG: See what files Render actually sees
+    print(f"Current Directory: {BASE_DIR}")
+    print(f"Files found in Root: {os.listdir(BASE_DIR)}")
+
+    # Load from Root (since you moved them)
     models['rf'] = joblib.load(os.path.join(BASE_DIR, 'tuned_rf_model.pkl'))
     models['xgb'] = joblib.load(os.path.join(BASE_DIR, 'xgboost_model.pkl'))
     scaler = joblib.load(os.path.join(BASE_DIR, 'scaler.pkl'))
     features = joblib.load(os.path.join(BASE_DIR, 'feature_list.pkl'))
     encoders = joblib.load(os.path.join(BASE_DIR, 'label_encoders_dict.pkl'))
     
-    print("✅ SUCCESS: All assets loaded from Root!")
+    print("✅ SUCCESS: All ML assets loaded successfully!")
 except Exception as e:
-    print(f"ASSET LOADING FAILED: {e}")
-    
+    print(f"CRITICAL ASSET ERROR: {e}")
+    # We don't raise the error here so the app stays alive for debugging
 
 # Global history storage
 transaction_history = []
