@@ -12,9 +12,15 @@ print("Files in model_assets:", os.listdir('model_assets'))
 # --- LOAD ML ASSETS ---
 try:
     import os
+    import joblib
+    # Get the directory where app.py is located
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    # Point exactly to the model_assets folder
     asset_path = os.path.join(BASE_DIR, 'model_assets')
     
+    print(f"Checking directory: {asset_path}")
+    print(f"Files found: {os.listdir(asset_path)}") # This helps debug in Render logs
+
     models = {
         'rf': joblib.load(os.path.join(asset_path, 'tuned_rf_model.pkl')),
         'xgb': joblib.load(os.path.join(asset_path, 'xgboost_model.pkl')),
@@ -22,13 +28,12 @@ try:
     
     scaler = joblib.load(os.path.join(asset_path, 'scaler.pkl'))
     features = joblib.load(os.path.join(asset_path, 'feature_list.pkl'))
-    
-    # FIX: Explicitly loading the encoders into the variable 'encoders'
     encoders = joblib.load(os.path.join(asset_path, 'label_encoders_dict.pkl'))
     
     print("✅ All ML assets loaded successfully!")
 except Exception as e:
     print(f"CRITICAL ASSET ERROR: {e}", flush=True)
+    # Don't let it crash silently; Render needs to show the error in logs
     raise e
 
 # Global history storage
