@@ -15,24 +15,44 @@ features = []  # Empty list is iterable; None is not.
 encoders = {}  # Empty dict is iterable; None is not.
 
 # --- LOAD ML ASSETS ---
-try:
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    
-    # DEBUG: See what files Render actually sees
-    print(f"Current Directory: {BASE_DIR}")
-    print(f"Files found in Root: {os.listdir(BASE_DIR)}")
+# --- FINAL UNIVERSAL LOADING BLOCK ---
+import joblib
+import os
 
-    # Load from Root (since you moved them)
-    models['rf'] = joblib.load(os.path.join(BASE_DIR, 'tuned_rf_model.pkl'))
-    models['xgb'] = joblib.load(os.path.join(BASE_DIR, 'xgboost_model.pkl'))
-    scaler = joblib.load(os.path.join(BASE_DIR, 'scaler.pkl'))
-    features = joblib.load(os.path.join(BASE_DIR, 'feature_list.pkl'))
-    encoders = joblib.load(os.path.join(BASE_DIR, 'label_encoders_dict.pkl'))
+models = {}
+scaler = None
+features = []
+encoders = {}
+
+def load_asset(filename):
+    # Search order: 1. Root, 2. model_assets folder
+    paths_to_check = [filename, os.path.join('model_assets', filename)]
+    for path in paths_to_check:
+        if os.path.exists(path):
+            try:
+                return joblib.load(path)
+            except Exception as e:
+                print(f"Error loading {path}: {e}")
+    return None
+
+try:
+    # Load Models
+    models['rf'] = load_asset('tuned_rf_model.pkl')
+    models['xgb'] = load_asset('xgboost_model.pkl')
     
-    print("✅ SUCCESS: All ML assets loaded successfully!")
+    # Load Preprocessing Assets
+    scaler = load_asset('scaler.pkl')
+    features = load_asset('feature_list.pkl')
+    encoders = load_asset('label_encoders_dict.pkl')
+
+    if all([models['rf'], scaler, features, encoders]):
+        print("✅ SUCCESS: System fully operational.")
+    else:
+        missing = [f for f, v in [("RF", models['rf']), ("Scaler", scaler), ("Features", features), ("Encoders", encoders)] if v is None]
+        print(f"⚠️ WARNING: Missing assets: {missing}")
+
 except Exception as e:
-    print(f"CRITICAL ASSET ERROR: {e}")
-    # We don't raise the error here so the app stays alive for debugging
+    print(f"FATAL STARTUP ERROR: {e}")
 
 # Global history storage
 transaction_history = []
