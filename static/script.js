@@ -1,3 +1,10 @@
+if (!sessionStorage.getItem('active_session')) {
+    fetch('/api/reset-session', { method: 'POST' })
+        .then(() => {
+            sessionStorage.setItem('active_session', 'true');
+            window.location.reload();
+        });
+}
 let simInterval = null;
 let mainChart = null;
 
