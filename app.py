@@ -198,13 +198,19 @@ def predict():
         return jsonify({"error": str(e)}), 400
 
 @app.route('/')
-def index(): return render_template('dashboard.html')
+def index():
+    global transaction_history
+    transaction_history = [] 
+    return render_template('dashboard.html')
 
 @app.route('/predict-page')
 def pred_page(): return render_template('predict.html')
 
 @app.route('/history-page')
-def hist_page(): return render_template('history.html')
+def hist_page():
+    global transaction_history
+    transaction_history = []
+    return render_template('history.html')
 
 @app.route('/api/stats')
 def get_stats():
