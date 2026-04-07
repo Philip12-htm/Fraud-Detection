@@ -15,42 +15,38 @@ features = []  # Empty list is iterable; None is not.
 encoders = {}  # Empty dict is iterable; None is not.
 
 # --- LOAD ML ASSETS ---
-# --- FINAL UNIVERSAL LOADING BLOCK ---
-import joblib
-import os
-
-models = {}
-scaler = None
-features = []
-encoders = {}
-
-# --- FINAL ROOT-ONLY LOADING BLOCK ---
 def load_asset(filename):
-    # Only look in the ROOT now
-    if os.path.exists(filename):
+    # 1. Get all files in the current directory
+    files_in_root = os.listdir('.')
+    
+    # 2. Look for a file that matches the name even if it has extra spaces
+    target_file = None
+    for f in files_in_root:
+        if f.strip() == filename: # This removes spaces from 'tuned_rf_model.pkl '
+            target_file = f
+            break
+            
+    if target_file and os.path.exists(target_file):
         try:
-            return joblib.load(filename)
+            print(f"DEBUG: Found match for {filename} as '{target_file}'")
+            return joblib.load(target_file)
         except Exception as e:
-            print(f"Error loading {filename}: {e}")
+            print(f"Error loading {target_file}: {e}")
     return None
 
 try:
-    # Load Models
+    # We still try to load with the correct names
     models['rf'] = load_asset('tuned_rf_model.pkl')
     models['xgb'] = load_asset('xgboost_model.pkl')
-    
-    # Load Preprocessing Assets
     scaler = load_asset('scaler.pkl')
     features = load_asset('feature_list.pkl')
     encoders = load_asset('label_encoders_dict.pkl')
 
-    # SUCCESS CHECK
-    if all([models.get('rf'), scaler, features, encoders]):
-        print("✅ SUCCESS: All assets loaded from ROOT.")
+    if models.get('rf') and scaler and features and encoders:
+        print("✅ SUCCESS: All assets loaded perfectly despite filename spaces.")
     else:
-        # If RF failed but was loaded as None, let's see why
         missing = [f for f, v in [("RF", models.get('rf')), ("Scaler", scaler), ("Features", features), ("Encoders", encoders)] if v is None]
-        print(f"⚠️ WARNING: Missing assets in root: {missing}")
+        print(f"⚠️ WARNING: Missing: {missing}")
         # Print a list of what IS actually in the root to help us debug
         print(f"DEBUG: Files currently in root: {os.listdir('.')}")
 
