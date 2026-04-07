@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FraudIntel | Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/style.css" />
+    <style>
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateX(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+      .animate-slide-in {
+        animation: slideIn 0.3s ease-out forwards;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #1e293b;
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+  <body class="bg-[#020617] text-slate-200">
+    <nav
+      class="sticky top-0 z-50 glass border-b border-white/10 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4"
+    >
+      <div class="flex items-center gap-2">
+        <div
+          class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-blue-500/20"
+        >
+          F
+        </div>
+        <h1 class="text-xl font-bold tracking-tight">
+          FraudIntel <span class="text-blue-500">PRO</span>
+        </h1>
+      </div>
+      <div class="flex items-center gap-6">
+        <a
+          href="/"
+          class="text-blue-400 font-bold border-b-2 border-blue-400 pb-1"
+          >Dashboard</a
+        >
+        <a
+          href="/predict-page"
+          class="text-slate-400 hover:text-white transition"
+          >Predict</a
+        >
+        <a
+          href="/history-page"
+          class="text-slate-400 hover:text-white transition"
+          >History</a
+        >
+      </div>
+    </nav>
+
+    <main class="p-4 md:p-8 max-w-7xl mx-auto space-y-8">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass p-6 border-l-4 border-blue-500">
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            Total Scanned
+          </p>
+          <h3 id="stat-total" class="text-3xl font-black mt-1">0</h3>
+        </div>
+        <div class="glass p-6 border-l-4 border-red-500">
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            Fraud Detected
+          </p>
+          <h3 id="stat-fraud" class="text-3xl font-black text-red-500 mt-1">
+            0
+          </h3>
+        </div>
+        <div class="glass p-6 border-l-4 border-yellow-500">
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            Fraud Rate
+          </p>
+          <h3 id="stat-rate" class="text-3xl font-black text-yellow-500 mt-1">
+            0%
+          </h3>
+        </div>
+        <div class="glass p-6 border-l-4 border-green-500">
+          <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            Avg Risk Score
+          </p>
+          <h3 id="stat-risk" class="text-3xl font-black mt-1 text-green-400">
+            0.00
+          </h3>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 glass p-8 min-h-[400px]">
+          <h4 class="font-bold mb-6 flex items-center gap-2">
+            <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Risk
+            Distribution
+          </h4>
+          <div class="h-[300px]">
+            <canvas id="mainChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass p-8 flex flex-col h-[400px]">
+          <div class="flex justify-between items-center mb-6">
+            <h4
+              class="font-bold uppercase text-xs tracking-widest text-slate-500"
+            >
+              Live Stream
+            </h4>
+            <button
+              onclick="toggleSimulation()"
+              id="simBtn"
+              class="bg-blue-600 hover:bg-blue-500 px-4 py-1.5 rounded-full text-[10px] font-black transition-all"
+            >
+              START SIMULATION
+            </button>
+          </div>
+          <div
+            id="liveFeed"
+            class="space-y-4 overflow-y-auto flex-1 pr-2 custom-scrollbar"
+          >
+            <p class="text-center text-slate-600 mt-20 italic text-sm">
+              System idle. Start simulation to stream data.
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="/static/script.js"></script>
+  </body>
+</html>

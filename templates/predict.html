@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FraudIntel | Predict</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body class="bg-[#020617] text-slate-200">
+    <nav
+      class="sticky top-0 z-50 glass border-b border-white/10 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4"
+    >
+      <div class="flex items-center gap-2">
+        <div
+          class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center font-black"
+        >
+          F
+        </div>
+        <h1 class="text-xl font-bold">
+          FraudIntel <span class="text-blue-500">PRO</span>
+        </h1>
+      </div>
+      <div class="flex gap-6">
+        <a href="/" class="text-slate-400 hover:text-white">Dashboard</a>
+        <a
+          href="/predict-page"
+          class="text-blue-400 font-bold border-b-2 border-blue-400 pb-1"
+          >Predict</a
+        >
+        <a href="/history-page" class="text-slate-400 hover:text-white"
+          >History</a
+        >
+      </div>
+    </nav>
+
+    <main
+      class="p-4 md:p-8 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8"
+    >
+      <div class="glass p-8">
+        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+          <span class="w-1 h-5 bg-blue-500 rounded"></span> Manual Entry
+        </h2>
+        <form id="predictForm" class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label
+              class="text-[10px] text-slate-500 font-black uppercase tracking-tighter"
+              >Amount ($)</label
+            >
+            <input
+              type="number"
+              name="amt"
+              value="150.00"
+              class="input-field"
+              required
+            />
+          </div>
+          <div class="space-y-2">
+            <label
+              class="text-[10px] text-slate-500 font-black uppercase tracking-tighter"
+              >Category</label
+            >
+            <select name="category" class="input-field">
+              <option value="grocery_pos">Grocery Store</option>
+              <option value="gas_transport">Gas & Fuel</option>
+              <option value="food_dining">Restaurants & Dining</option>
+              <option value="health_fitness">Health & Fitness</option>
+
+              <option value="shopping_net">Online Shopping</option>
+              <option value="entertainment">Entertainment & Arts</option>
+              <option value="misc_net">Miscellaneous Online</option>
+              <option value="travel">Travel & Hotels</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label
+              class="text-[10px] text-slate-500 font-black uppercase tracking-tighter"
+              >Distance (KM)</label
+            >
+            <input
+              type="number"
+              name="distance"
+              value="5"
+              class="input-field"
+              required
+            />
+          </div>
+          <div class="space-y-2">
+            <label
+              class="text-[10px] text-slate-500 font-black uppercase tracking-tighter"
+              >Age of User</label
+            >
+            <input
+              type="number"
+              name="age"
+              value="25"
+              class="input-field"
+              required
+            />
+          </div>
+          <div class="space-y-2">
+            <label
+              class="text-[10px] text-slate-500 font-black uppercase tracking-tighter"
+              >Time of Day</label
+            >
+            <div class="flex gap-2">
+              <select id="ui-hour" class="input-field w-full">
+                <option value="12">12</option>
+                <option value="1">01</option>
+                <option value="2">02</option>
+                <option value="3" selected>03</option>
+                <option value="4">04</option>
+                <option value="5">05</option>
+                <option value="6">06</option>
+                <option value="7">07</option>
+                <option value="8">08</option>
+                <option value="9">09</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+              </select>
+
+              <select id="ui-ampm" name="ampm" class="input-field w-32">
+                <option value="AM" selected>AM</option>
+                <option value="PM">PM</option>
+              </select>
+            </div>
+
+            <input type="hidden" name="hour" id="final-hour" value="3" />
+          </div>
+          <div class="space-y-2">
+            <label
+              class="text-[10px] text-slate-500 font-black uppercase tracking-tighter"
+              >TX Per Hour</label
+            >
+            <input
+              type="number"
+              name="transactions_per_hour"
+              value="1"
+              class="input-field"
+              required
+            />
+          </div>
+          <div class="sm:col-span-2 space-y-2">
+            <label
+              class="text-[10px] text-slate-500 font-black uppercase tracking-tighter"
+              >Analysis Model</label
+            >
+            <select name="model" class="input-field">
+              <option value="rf">Random Forest (High Precision)</option>
+              <option value="xgb">XGBoost (High Recall)</option>
+            </select>
+          </div>
+          <input type="hidden" name="gender" value="M" />
+          <input type="hidden" name="state" value="NY" />
+          <input type="hidden" name="job" value="Student" />
+          <button
+            type="submit"
+            class="sm:col-span-2 bg-blue-600 hover:bg-blue-500 py-4 rounded-xl font-black text-sm transition-all mt-4 uppercase tracking-widest shadow-lg shadow-blue-500/20"
+          >
+            Execute Analysis
+          </button>
+        </form>
+      </div>
+      <div class="glass p-8 flex flex-col">
+        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+          <span class="w-1 h-5 bg-purple-500 rounded"></span> Batch Forensic
+          Audit (CSV)
+        </h2>
+        <div class="space-y-6">
+          <div class="space-y-2">
+            <label
+              class="text-[10px] text-slate-500 font-black uppercase tracking-tighter"
+              >Analysis Model for Batch</label
+            >
+            <select id="batchModel" class="input-field w-full">
+              <option value="rf">Random Forest (High Precision)</option>
+              <option value="xgb">XGBoost (High Recall)</option>
+            </select>
+          </div>
+
+          <div
+            class="border-2 border-dashed border-white/10 rounded-2xl p-6 text-center bg-white/5"
+          >
+            <p class="text-slate-400 text-[11px] mb-4 italic">
+              Upload expense reports to scan for patterns
+            </p>
+            <input type="file" id="csvFile" class="hidden" accept=".csv" />
+            <button
+              onclick="document.getElementById('csvFile').click()"
+              class="bg-white/10 hover:bg-white/20 border border-white/10 px-4 py-2 rounded-lg font-bold text-[10px] transition-all uppercase"
+            >
+              Select CSV File
+            </button>
+            <div
+              id="fileName"
+              class="mt-3 text-[10px] text-blue-400 font-mono hidden truncate"
+            ></div>
+          </div>
+
+          <button
+            id="uploadBtn"
+            class="w-full bg-purple-600 hover:bg-purple-500 py-4 rounded-xl font-black text-sm transition-all uppercase tracking-widest shadow-lg shadow-purple-500/20 hidden"
+          >
+            Run Batch Analysis
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="resultBox"
+        class="glass p-8 hidden border-2 transition-all duration-500 overflow-hidden relative"
+      >
+        <div id="alertIcon" class="absolute top-4 right-4 text-4xl"></div>
+        <p class="text-[10px] text-slate-500 font-black uppercase">Verdict</p>
+        <h2 id="res-verdict" class="text-5xl font-black italic mb-8"></h2>
+
+        <div class="space-y-6">
+          <div>
+            <div
+              class="flex justify-between text-[10px] font-bold text-slate-400 mb-2 uppercase"
+            >
+              <span>Fraud Probability</span><span id="res-prob-text">0%</span>
+            </div>
+            <div class="w-full bg-slate-800 rounded-full h-3">
+              <div
+                id="res-bar"
+                class="h-3 rounded-full transition-all duration-1000"
+              ></div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white/5 border border-white/5 p-4 rounded-xl">
+              <p class="text-[10px] text-slate-500 font-bold uppercase">
+                Risk Level
+              </p>
+              <p id="res-risk" class="font-black text-lg"></p>
+            </div>
+            <div class="bg-white/5 border border-white/5 p-4 rounded-xl">
+              <p class="text-[10px] text-slate-500 font-bold uppercase">
+                Model Used
+              </p>
+              <p id="res-model" class="font-black text-lg"></p>
+            </div>
+          </div>
+          <div>
+            <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">
+              Risk Indicators
+            </p>
+            <div id="res-reasons" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+      </div>
+      <div
+        id="manual-review-note"
+        class="mt-6 p-4 rounded-xl border border-dashed border-white/10 bg-white/5 hidden"
+      >
+        <p class="text-[10px] text-blue-400 font-black uppercase mb-1">
+          System Note
+        </p>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          <span class="text-white font-bold">System Override:</span>
+          Transaction exceeds safety thresholds (Amount/Distance). Escalated to
+          Manual Review.
+        </p>
+      </div>
+      <div
+        id="batchResults"
+        class="lg:col-span-2 glass p-8 mt-8 hidden border border-purple-500/20"
+      >
+        <h3
+          class="font-black text-xs uppercase tracking-widest text-purple-400 mb-6 flex items-center gap-2"
+        >
+          <span class="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></span>
+          Audit Findings
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr
+                class="text-[10px] text-slate-500 uppercase border-b border-white/5"
+              >
+                <th class="pb-4">Amount</th>
+                <th class="pb-4">Category</th>
+                <th class="pb-4">Risk Score</th>
+                <th class="pb-4">Risk Level</th>
+                <th class="pb-4">Verdict</th>
+              </tr>
+            </thead>
+            <tbody id="batchBody" class="text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      document
+        .getElementById("predictForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const h = parseInt(document.getElementById("ui-hour").value);
+          const m = document.getElementById("ui-ampm").value;
+          document.getElementById("final-hour").value = h;
+          const btn = e.target.querySelector("button");
+          btn.innerText = "ANALYZING...";
+          btn.disabled = true;
+
+          try {
+            const formData = Object.fromEntries(new FormData(e.target));
+            const res = await fetch("/predict", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(formData),
+            });
+
+            const data = await res.json();
+
+            // If the backend sent an error, show it to the user
+            if (data.error) {
+              console.error("Server Error:", data.error);
+              alert("Model Error: " + data.error);
+              return;
+            }
+
+            const isFraud = data.prediction === 1;
+            const prob = parseFloat(data.probability) || 0;
+            const risk = data.risk_level || "STABLE";
+
+            //  Multi-stage Color Logic
+            let color;
+            let icon;
+            if (risk === "CRITICAL") {
+              color = "#ef4444"; // Red
+              icon = "🚨";
+            } else if (risk === "ELEVATED") {
+              color = "#f97316"; // Orange
+              icon = "⚠️";
+            } else {
+              color = "#22c55e"; // Green
+              icon = "🛡️";
+            }
+
+            const box = document.getElementById("resultBox");
+            box.classList.remove("hidden");
+            box.style.borderColor = color + "44";
+
+            document.getElementById("res-verdict").innerText = isFraud
+              ? "FRAUDULENT"
+              : "LEGITIMATE";
+            document.getElementById("res-verdict").style.color = color;
+
+            const percentage = (prob * 100).toFixed(2);
+            document.getElementById("res-prob-text").innerText =
+              percentage + "%";
+            document.getElementById("res-bar").style.width = percentage + "%";
+            document.getElementById("res-bar").style.backgroundColor = color;
+
+            document.getElementById("res-risk").innerText = risk;
+            document.getElementById("res-risk").style.color = color;
+            document.getElementById("res-model").innerText = data.model || "RF";
+            document.getElementById("alertIcon").innerText = icon;
+
+            const reasonsBox = document.getElementById("res-reasons");
+            reasonsBox.innerHTML = (data.reasons || ["Normal Patterns"])
+              .map(
+                (r) =>
+                  `<span class="bg-white/5 border border-white/10 px-3 py-1 rounded-full text-[10px] font-bold text-slate-400">${r}</span>`,
+              )
+              .join("");
+
+            const note = document.getElementById("manual-review-note");
+            if (risk === "CRITICAL") {
+              note.classList.remove("hidden");
+            } else {
+              note.classList.add("hidden");
+            }
+
+            if (isFraud && prob > 0.8) {
+              alert("🚨 CRITICAL ALERT: HIGH FRAUD RISK DETECTED!");
+            }
+          } catch (err) {
+            alert("Connection Error: " + err.message);
+          } finally {
+            btn.innerText = "EXECUTE ANALYSIS";
+            btn.disabled = false;
+          }
+        });
+      // --- REPLACE FROM LINE 245 TO THE END OF THE SCRIPT TAG ---
+      const fileInput = document.getElementById("csvFile");
+      const uploadBtn = document.getElementById("uploadBtn");
+
+      fileInput.addEventListener("change", function () {
+        if (this.files && this.files[0]) {
+          const name = this.files[0].name;
+          // Updated UI feedback
+          document.getElementById("fileName").innerText =
+            "📄 Selected: " + name;
+          document.getElementById("fileName").classList.remove("hidden");
+          uploadBtn.classList.remove("hidden"); // Shows the purple button
+        }
+      });
+
+      uploadBtn.addEventListener("click", async () => {
+        const file = fileInput.files[0];
+        const selectedModel = document.getElementById("batchModel").value;
+        const formData = new FormData();
+
+        formData.append("file", file);
+        formData.append("model", selectedModel);
+
+        uploadBtn.innerText = "🔍 ANALYZING BATCH...";
+        uploadBtn.disabled = true;
+
+        try {
+          const res = await fetch("/predict-csv", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await res.json();
+
+          if (data.error) throw new Error(data.error);
+
+          const body = document.getElementById("batchBody");
+          body.innerHTML = ""; // Clear old results
+          document.getElementById("batchResults").classList.remove("hidden");
+
+          data.results.forEach((row) => {
+            let color =
+              row.risk === "CRITICAL"
+                ? "text-red-500"
+                : row.risk === "ELEVATED"
+                  ? "text-orange-500"
+                  : "text-green-500";
+
+            body.innerHTML += `
+                <tr class="border-b border-white/5 hover:bg-white/5 transition">
+                    <td class="py-4 font-bold text-white">$${parseFloat(row.amt).toLocaleString()}</td>
+                    <td class="py-4 text-slate-400 uppercase text-[10px] font-bold">${row.category}</td>
+                    <td class="py-4 font-mono text-xs">${row.prob}%</td>
+                    <td class="py-4 font-black text-[11px] ${color}">${row.risk}</td>
+                    <td class="py-4">
+                        <span class="px-2 py-1 rounded text-[9px] font-black ${row.verdict === "FRAUD" ? "bg-red-500/20 text-red-400" : "bg-green-500/20 text-green-400"}">
+                            ${row.verdict}
+                        </span>
+                    </td>
+                </tr>
+            `;
+          });
+
+          document
+            .getElementById("batchResults")
+            .scrollIntoView({ behavior: "smooth" });
+        } catch (err) {
+          alert("Batch Audit Failed: " + err.message);
+        } finally {
+          uploadBtn.innerText = "Run Batch Analysis";
+          uploadBtn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

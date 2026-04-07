@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FraudIntel | History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body class="bg-[#020617] text-slate-200">
+    <nav
+      class="sticky top-0 z-50 glass border-b border-white/10 px-6 py-4 flex flex-col md:flex-row justify-between items-center gap-4"
+    >
+      <h1 class="text-xl font-bold">
+        Transaction <span class="text-blue-500">History</span>
+      </h1>
+      <div class="flex gap-6 items-center">
+        <a href="/" class="text-slate-400">Dashboard</a>
+        <a href="/predict-page" class="text-slate-400">Predict</a>
+        <a
+          href="/history-page"
+          class="text-blue-400 font-bold border-b-2 border-blue-400 pb-1"
+          >History</a
+        >
+      </div>
+    </nav>
+
+    <main class="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <input
+          type="text"
+          id="tableSearch"
+          onkeyup="searchTable()"
+          placeholder="Search by category, model or risk..."
+          class="glass px-4 py-2 text-xs w-full max-w-md border border-white/10 rounded-lg outline-none focus:border-blue-500"
+        />
+
+        <div class="flex gap-2">
+          <button
+            onclick="deleteSelected()"
+            id="deleteBtn"
+            class="hidden bg-red-600 hover:bg-red-500 px-4 py-2 rounded-lg text-[10px] font-bold transition"
+          >
+            DELETE SELECTED
+          </button>
+          <button
+            onclick="deleteAll()"
+            class="bg-red-900/40 hover:bg-red-600 border border-red-500/50 px-4 py-2 rounded-lg text-[10px] font-bold transition"
+          >
+            CLEAR ALL
+          </button>
+          <button
+            onclick="downloadCSV()"
+            class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-lg text-[10px] font-bold transition"
+          >
+            DOWNLOAD JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="glass overflow-x-auto border border-white/5 rounded-xl">
+        <table
+          id="historyTable"
+          class="w-full text-left border-collapse min-w-[900px]"
+        >
+          <thead
+            class="bg-white/5 text-[10px] text-slate-500 uppercase font-black"
+          >
+            <tr>
+              <th class="p-5 w-10">
+                <input
+                  type="checkbox"
+                  id="selectAll"
+                  onclick="toggleAll(this)"
+                />
+              </th>
+              <th class="p-5">Timestamp</th>
+              <th class="p-5">Amt ($)</th>
+              <th class="p-5">Category</th>
+              <th class="p-5">Model</th>
+              <th class="p-5">Verdict</th>
+              <th class="p-5">Risk Level</th>
+              <th class="p-5">Score</th>
+              <th class="p-5">Action</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody" class="text-sm font-medium"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <script>
+      let historyData = [];
+
+      async function loadHistory() {
+        const res = await fetch("/api/history");
+        historyData = await res.json();
+        renderTable();
+      }
+
+      function renderTable() {
+        const tbody = document.getElementById("historyBody");
+        if (historyData.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" class="p-10 text-center text-slate-500 italic">No history found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = historyData
+          .map(
+            (tx, index) => `
+            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors ${tx.prediction === 1 ? "bg-red-500/5" : ""}">
+                <td class="p-5"><input type="checkbox" class="row-check" data-index="${index}" onclick="updateDeleteBtn()"></td>
+                <td class="p-5 text-slate-500 text-xs font-mono">${tx.timestamp}</td>
+                <td class="p-5 font-black text-white">$${tx.amt}</td>
+                <td class="p-5 text-xs text-slate-400">${tx.category}</td>
+                <td class="p-5"><span class="bg-slate-800 px-2 py-0.5 rounded-md text-[9px] font-black">${tx.model}</span></td>
+                <td class="p-5 ${tx.prediction ? "text-red-500 font-black italic" : "text-green-500"}">${tx.prediction ? "FRAUD" : "LEGIT"}</td>
+                <td class="p-5"><span class="text-[10px] px-2 py-1 rounded font-bold ${tx.risk_level === "CRITICAL" ? "bg-red-500/20 text-red-500" : tx.risk_level === "ELEVATED" ? "bg-yellow-500/20 text-yellow-500" : "bg-green-500/20 text-green-500"}">${tx.risk_level}</span></td>
+                <td class="p-5 font-mono text-xs text-slate-500">${(tx.probability * 100).toFixed(1)}%</td>
+                <td class="p-5"><button onclick="deleteSingle(${index})" class="text-slate-600 hover:text-red-500 transition">✕</button></td>
+            </tr>
+        `,
+          )
+          .join("");
+        updateDeleteBtn();
+      }
+
+      function toggleAll(master) {
+        document
+          .querySelectorAll(".row-check")
+          .forEach((c) => (c.checked = master.checked));
+        updateDeleteBtn();
+      }
+
+      function updateDeleteBtn() {
+        const checkedCount =
+          document.querySelectorAll(".row-check:checked").length;
+        document
+          .getElementById("deleteBtn")
+          .classList.toggle("hidden", checkedCount === 0);
+      }
+
+      // Action: Delete Specific One
+      function deleteSingle(index) {
+        if (confirm("Delete this record?")) {
+          historyData.splice(index, 1);
+          saveAndRefresh();
+        }
+      }
+
+      // Action: Delete Selected
+      function deleteSelected() {
+        const checked = Array.from(
+          document.querySelectorAll(".row-check:checked"),
+        ).map((c) => parseInt(c.dataset.index));
+        if (confirm(`Delete ${checked.length} selected records?`)) {
+          historyData = historyData.filter((_, idx) => !checked.includes(idx));
+          saveAndRefresh();
+        }
+      }
+
+      // Action: Delete All
+      function deleteAll() {
+        if (confirm("Are you sure you want to clear the entire history?")) {
+          historyData = [];
+          saveAndRefresh();
+        }
+      }
+
+      // This function simulates saving (Since your current app.py uses a global list in memory)
+      function saveAndRefresh() {
+        // Optional: Send update to server if you implement a DELETE route
+        // For now, it updates the UI list
+        renderTable();
+      }
+
+      function searchTable() {
+        let input = document.getElementById("tableSearch").value.toUpperCase();
+        let rows = document
+          .getElementById("historyBody")
+          .getElementsByTagName("tr");
+        for (let i = 0; i < rows.length; i++) {
+          rows[i].style.display = rows[i].innerText
+            .toUpperCase()
+            .includes(input)
+            ? ""
+            : "none";
+        }
+      }
+
+      function downloadCSV() {
+        window.location.href = "/api/history";
+      }
+
+      loadHistory();
+    </script>
+  </body>
+</html>
