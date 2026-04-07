@@ -25,9 +25,8 @@ try:
     
     print("✅ All ML assets loaded successfully!")
 except Exception as e:
-    print(f"CRITICAL ASSET ERROR: {e}")
-    # Define an empty dict so the app doesn't crash if loading fails
-    encoders = {}
+    print(f"CRITICAL ASSET ERROR: {e}", flush=True)
+    raise e
 
 # Global history storage
 transaction_history = []
