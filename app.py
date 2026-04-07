@@ -24,15 +24,14 @@ scaler = None
 features = []
 encoders = {}
 
+# --- FINAL ROOT-ONLY LOADING BLOCK ---
 def load_asset(filename):
-    # Search order: 1. Root, 2. model_assets folder
-    paths_to_check = [filename, os.path.join('model_assets', filename)]
-    for path in paths_to_check:
-        if os.path.exists(path):
-            try:
-                return joblib.load(path)
-            except Exception as e:
-                print(f"Error loading {path}: {e}")
+    # Only look in the ROOT now
+    if os.path.exists(filename):
+        try:
+            return joblib.load(filename)
+        except Exception as e:
+            print(f"Error loading {filename}: {e}")
     return None
 
 try:
@@ -45,11 +44,15 @@ try:
     features = load_asset('feature_list.pkl')
     encoders = load_asset('label_encoders_dict.pkl')
 
-    if all([models['rf'], scaler, features, encoders]):
-        print("✅ SUCCESS: System fully operational.")
+    # SUCCESS CHECK
+    if all([models.get('rf'), scaler, features, encoders]):
+        print("✅ SUCCESS: All assets loaded from ROOT.")
     else:
-        missing = [f for f, v in [("RF", models['rf']), ("Scaler", scaler), ("Features", features), ("Encoders", encoders)] if v is None]
-        print(f"⚠️ WARNING: Missing assets: {missing}")
+        # If RF failed but was loaded as None, let's see why
+        missing = [f for f, v in [("RF", models.get('rf')), ("Scaler", scaler), ("Features", features), ("Encoders", encoders)] if v is None]
+        print(f"⚠️ WARNING: Missing assets in root: {missing}")
+        # Print a list of what IS actually in the root to help us debug
+        print(f"DEBUG: Files currently in root: {os.listdir('.')}")
 
 except Exception as e:
     print(f"FATAL STARTUP ERROR: {e}")
@@ -148,7 +151,12 @@ def predict():
         # 5. Scaling & Prediction
         final_df = input_df[features]
         scaled_data = scaler.transform(final_df)
-        target_model = models.get(model_choice, models['rf'])
+        target_model = models.get(model_choice) or models.get('rf')
+        
+        if target_model is None:
+            return jsonify({"error": "Machine Learning model not initialized. Check server logs."}), 500
+            
+        probability = float(target_model.predict_proba(scaled_data)[0][1])
         probability = float(target_model.predict_proba(scaled_data)[0][1])
 
         # 6. SMART BOOST SYSTEM
