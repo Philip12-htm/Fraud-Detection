@@ -9,32 +9,40 @@ app = Flask(__name__)
 import os
 print("Files in model_assets:", os.listdir('model_assets'))
 
-# --- LOAD ML ASSETS ---
-try:
-    import os
-    import joblib
-    # Get the directory where app.py is located
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    # Point exactly to the model_assets folder
-    asset_path = os.path.join(BASE_DIR, 'model_assets')
-    
-    print(f"Checking directory: {asset_path}")
-    print(f"Files found: {os.listdir(asset_path)}") # This helps debug in Render logs
+import os
+import joblib
 
-    models = {
-        'rf': joblib.load(os.path.join(asset_path, 'tuned_rf_model.pkl')),
-        'xgb': joblib.load(os.path.join(asset_path, 'xgboost_model.pkl')),
-    }
+# Force the path to be absolute based on where app.py sits
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+asset_path = os.path.join(BASE_DIR, 'model_assets')
+
+# Initialize variables as None so the app doesn't crash on "not defined"
+models = {}
+scaler = None
+features = None
+encoders = None
+
+try:
+    print(f"Current working directory: {os.getcwd()}")
+    print(f"Looking for assets in: {asset_path}")
     
+    if not os.path.exists(asset_path):
+        print(f"❌ ERROR: The directory {asset_path} does not exist!")
+    else:
+        print(f"Contents of {asset_path}: {os.listdir(asset_path)}")
+
+    # Load the files using the absolute path
+    models['rf'] = joblib.load(os.path.join(asset_path, 'tuned_rf_model.pkl'))
+    models['xgb'] = joblib.load(os.path.join(asset_path, 'xgboost_model.pkl'))
     scaler = joblib.load(os.path.join(asset_path, 'scaler.pkl'))
     features = joblib.load(os.path.join(asset_path, 'feature_list.pkl'))
     encoders = joblib.load(os.path.join(asset_path, 'label_encoders_dict.pkl'))
     
-    print("✅ All ML assets loaded successfully!")
+    print("✅ SUCCESS: All ML assets loaded!")
+
 except Exception as e:
     print(f"CRITICAL ASSET ERROR: {e}", flush=True)
-    # Don't let it crash silently; Render needs to show the error in logs
-    raise e
+    
 
 # Global history storage
 transaction_history = []
