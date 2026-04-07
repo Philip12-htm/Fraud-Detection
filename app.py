@@ -199,7 +199,6 @@ def predict():
 
 @app.route('/')
 def index():
-    global transaction_history
     transaction_history = [] 
     return render_template('dashboard.html')
 
@@ -208,9 +207,13 @@ def pred_page(): return render_template('predict.html')
 
 @app.route('/history-page')
 def hist_page():
-    global transaction_history
     transaction_history = []
     return render_template('history.html')
+@app.route('/api/reset-session', methods=['POST'])
+def reset_session():
+    global transaction_history
+    transaction_history = []
+    return jsonify({"status": "reset"})
 
 @app.route('/api/stats')
 def get_stats():
