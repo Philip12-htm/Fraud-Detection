@@ -37,19 +37,19 @@ def load_asset(filename):
 try:
     models['rf'] = load_asset('tuned_rf_model.pkl')
     models['xgb'] = load_asset('xgboost_model.pkl')
+    
+    # Absolute startup purge for XGBoost 3.2.0
     if models.get('xgb'):
-        try:
-            if getattr(models['xgb'], 'use_label_encoder', None) is not None:
-                delattr(models['xgb'], 'use_label_encoder')
-                print("DEBUG: Removed legacy use_label_encoder from XGBoost.")
-        except Exception as e:
-            print(f"DEBUG: Skipping XGBoost attribute cleanup: {e}")
+        for attr in ['use_label_encoder', '_use_label_encoder']:
+            if hasattr(models['xgb'], attr):
+                delattr(models['xgb'], attr)
+        print(" XGBoost purged of legacy attributes.")
     scaler = load_asset('scaler.pkl')
     features = load_asset('feature_list.pkl')
     encoders = load_asset('label_encoders_dict.pkl')
 
     if models.get('rf') and scaler and features and encoders:
-        print("✅ SUCCESS: All assets loaded perfectly despite filename spaces.")
+        print(" SUCCESS: All assets loaded perfectly despite filename spaces.")
     else:
         missing = [f for f, v in [("RF", models.get('rf')), ("Scaler", scaler), ("Features", features), ("Encoders", encoders)] if v is None]
         print(f"⚠️ WARNING: Missing: {missing}")
@@ -158,7 +158,12 @@ def predict():
         if target_model is None:
             return jsonify({"error": "Machine Learning model not initialized. Check server logs."}), 500
             
-        probability = float(target_model.predict_proba(scaled_data)[0][1])
+        try:
+            probability = float(target_model.predict_proba(scaled_data)[0][1])
+        except AttributeError:
+            if hasattr(target_model, 'use_label_encoder'):
+                delattr(target_model, 'use_label_encoder')
+            probability = float(target_model.predict_proba(scaled_data)[0][1])
 
         # 6. SMART BOOST SYSTEM
         amt = float(data.get('amt', 0))
@@ -282,7 +287,13 @@ def predict_csv():
 
         # 3. PREDICTION
         scaled_data = scaler.transform(process_df[features])
-        probs = models.get(model_choice, models['rf']).predict_proba(scaled_data)[:, 1]
+        target_model = models.get(model_choice, models['rf'])
+        try:
+            probs = target_model.predict_proba(scaled_data)[:, 1]
+        except AttributeError:
+            if hasattr(target_model, 'use_label_encoder'):
+                delattr(target_model, 'use_label_encoder')
+            probs = target_model.predict_proba(scaled_data)[:, 1]
         
         # 4. BOOST & LOGIC
         boosts = np.where(df['amt'] > 1000, 0.15, 0) + np.where(df['hour'] <= 5, 0.15, 0)
