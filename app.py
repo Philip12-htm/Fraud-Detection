@@ -35,11 +35,15 @@ def load_asset(filename):
     return None
 
 try:
-    # We still try to load with the correct names
     models['rf'] = load_asset('tuned_rf_model.pkl')
     models['xgb'] = load_asset('xgboost_model.pkl')
-    if models.get('xgb') and hasattr(models['xgb'], 'use_label_encoder'):
-        delattr(models['xgb'], 'use_label_encoder')
+    if models.get('xgb'):
+        try:
+            if getattr(models['xgb'], 'use_label_encoder', None) is not None:
+                delattr(models['xgb'], 'use_label_encoder')
+                print("DEBUG: Removed legacy use_label_encoder from XGBoost.")
+        except Exception as e:
+            print(f"DEBUG: Skipping XGBoost attribute cleanup: {e}")
     scaler = load_asset('scaler.pkl')
     features = load_asset('feature_list.pkl')
     encoders = load_asset('label_encoders_dict.pkl')
@@ -154,7 +158,6 @@ def predict():
         if target_model is None:
             return jsonify({"error": "Machine Learning model not initialized. Check server logs."}), 500
             
-        probability = float(target_model.predict_proba(scaled_data)[0][1])
         probability = float(target_model.predict_proba(scaled_data)[0][1])
 
         # 6. SMART BOOST SYSTEM
