@@ -38,6 +38,8 @@ try:
     # We still try to load with the correct names
     models['rf'] = load_asset('tuned_rf_model.pkl')
     models['xgb'] = load_asset('xgboost_model.pkl')
+    if models.get('xgb') and hasattr(models['xgb'], 'use_label_encoder'):
+        delattr(models['xgb'], 'use_label_encoder')
     scaler = load_asset('scaler.pkl')
     features = load_asset('feature_list.pkl')
     encoders = load_asset('label_encoders_dict.pkl')
